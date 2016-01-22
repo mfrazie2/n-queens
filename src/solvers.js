@@ -99,56 +99,112 @@ window.countNRooksSolutions = function(n) {
 
 // return a matrix (an array of arrays) representing a single nxn chessboard, with n queens placed such that none of them can attack each other
 window.findNQueensSolution = function(n) {
-  var solution = undefined; //fixme
+  var solution = new Board({n:n}).rows(); //fixme
   var board = new Board({n:n});
   var boardSize = board.get('n');
-  console.log("n: " + n);
   var solutionFound = false;
 
+  var deepDup = function(array){
+    var output = []
+    array.forEach(function(el){
+      if (Array.isArray(el)){
+        output.push(deepDup(el))
+      }else{
+        output.push(el);
+      }
+    })
+    return output;
+  }
+
   var setPieces = function(row) {
-    console.log(solutionFound);
+    //console.log('solution is found? ',solutionFound);
     if(!solutionFound) {
-      console.log("got to here");
       for(var i = 0; i < boardSize; i++) {
-        console.log(i);
+        //console.log('row#', row, ' column#',i);
         board.togglePiece(row, i);
-        console.log("row: " + row + " column: " + i);
-        // conflicts exist?
-        if(board.hasAnyQueensConflicts()) {
-          console.log("found conflict");
-          board.togglePiece(row, i);
-          
-        }else{
+        // conflicts !exist?
+          // last row?
+            //save the board state as a solution
+            //solution found is true
+          // set piece in the next row
+        // untoggle the piece
+        
+        
+        
+        if(!board.hasAnyQueensConflicts()) {
           if(row === boardSize -1) {
+            //console.log("row === boardsize - 1");
             //assign current board state to solution
-            console.log("found solution");
-            solution = board.rows();
+            solution = deepDup(board.rows());
+            console.log(solution);
             //change solution found to be true
             solutionFound = true;
             break;
           } else {
+            //console.log("Going to next row");
             setPieces(row + 1);
           }
         }
+        //console.log(board.rows());
+        board.togglePiece(row, i);
       }
     } 
   };
   if (n === 0){
-    solution = [[0]];
+    solution = [];
   }else{
     setPieces(0);
   }
   
 
   console.log('Single solution for ' + n + ' queens:', JSON.stringify(solution));
+  console.log(solution);
   return solution;
 };
 
 
+
 // return the number of nxn chessboards that exist, with n queens placed such that none of them can attack each other
 window.countNQueensSolutions = function(n) {
-  var solutionCount = undefined; //fixme
+  var count = 0;
+  // recursive method that increments count as a side effect
+  var setPieces = function (row) {
 
-  console.log('Number of solutions for ' + n + ' queens:', solutionCount);
-  return solutionCount;
+    // iterate through each column in this row. Create a new branch for each one that is not in conflict so far.
+    // this will start with position [0][0] and create n branches from there. Those branches will create more branches.
+    for (var i = 0; i < n; i++) {
+      // put a piece here to see if it's in conflict with the board
+      board.togglePiece(row, i);
+      // if it is, remove the piece. Nothing else happens here because this is the end of this branch;
+      if(!board.hasAnyQueensConflicts()) {
+        if (row >= n-1) {
+          // if we've reached the final row, the branch has gone as far as it can go, we've found a solution and can increment count
+          count++;
+          // we remove the piece so that it won't affect the other iterations in this row
+          
+        } else {
+          // if this isn't the last row, we'll create a new branch. In order to avoid interefering with
+          // other iterations in this row, we'll create a new board that is a copy of the current one;
+//           var newBoard = board.clone(); //?
+          setPieces(row + 1);
+          // remove the piece we added to avoid interfering with other iterations in the row
+          
+          // move onto the next row by calling the method recursively and passing in the index of the next row
+          // and the new board that we created for our new branch
+          
+        }
+        // if there wasn't a conflict, we leave the piece and create a new branch
+      } 
+      board.togglePiece(row, i);
+    }
+  }
+  // create a board to start with
+  var board = new Board({n:n}); 
+ // start our recursive function at row 0; 
+ if (n === 0){
+  return 1;
+ }
+  setPieces(0);
+  console.log(count);
+  return count;
 };
